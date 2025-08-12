@@ -2,8 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import TodoList from '@/components/TodoList.vue'
 import About from '@/views/About.vue'
+import TaskDetails from '@/components/TaskDetails.vue'
 
-const router = createRouter ({
+const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
@@ -13,13 +14,23 @@ const router = createRouter ({
     },
     {
       path: '/todos',
-      name: 'TodoList',
+      name: 'TodoList', 
       component: TodoList
+    },
+    {
+      path: '/task/:id',
+      name: 'TaskDetails',
+      component: TaskDetails,
+      props: true
     },
     {
       path: '/about',
       name: 'About',
       component: About
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
     }
   ]
 })
