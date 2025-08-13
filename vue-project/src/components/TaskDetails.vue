@@ -111,38 +111,20 @@
 </template>
 
 <script>
+import { useTodoStore } from '@/stores/todoStore'
+
 export default {
   name: 'TaskDetails',
   
-  data() {
-    return {
-      tasks: [
-        {
-          id: 1,
-          name: 'Learn Vue.js',
-          description: 'Learn the basics of the Vue.js framework and create your first project',
-          status: 'to-do'
-        },
-        {
-          id: 2,
-          name: 'Configure project',
-          description: 'Set up the necessary dependencies and configure the development environment',
-          status: 'in-progress'
-        },
-        {
-          id: 3,
-          name: 'Create components',
-          description: 'Develop the main components for the application',
-          status: 'finished'
-        }
-      ]
-    }
+  setup() {
+    const todoStore = useTodoStore()
+    return { todoStore }
   },
 
   computed: {
     task() {
       const taskId = parseInt(this.$route.params.id);
-      return this.tasks.find(task => task.id === taskId);
+      return this.todoStore.getTaskById(taskId);
     }
   },
 
@@ -156,42 +138,24 @@ export default {
       return statusTexts[status] || status;
     },
 
-    getStatusDescription(status) {
-      const descriptions = {
-        'to-do': 'Task added to list, but work not yet started',
-        'in-progress': 'The task is currently being completed.',
-        'finished': 'Task successfully completed'
-      };
-      return descriptions[status] || '';
-    },
-
     getNextStatusAction() {
       const actions = {
         'to-do': 'Start execution',
         'in-progress': 'Complete the task',
         'finished': 'Completed'
       };
-      return actions[this.task.status] || '';
+      return actions[this.task?.status] || '';
     },
 
     changeTaskStatus() {
       if (!this.task || this.task.status === 'finished') return;
-
-      const statusFlow = {
-        'to-do': 'in-progress',
-        'in-progress': 'finished'
-      };
-
-      this.task.status = statusFlow[this.task.status];
+      this.todoStore.setNextStatus(this.task.id);
     },
 
     deleteTask() {
       if (confirm('Are you sure you want to delete this task?')) {
-        const taskIndex = this.tasks.findIndex(t => t.id === this.task.id);
-        if (taskIndex !== -1) {
-          this.tasks.splice(taskIndex, 1);
-          this.$router.push('/todos');
-        }
+        this.todoStore.deleteTask(this.task.id);
+        this.$router.push('/todos');
       }
     }
   },

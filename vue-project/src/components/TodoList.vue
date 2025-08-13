@@ -45,32 +45,32 @@
                 <h5 class="card-title">Filters</h5>
                 <div class="btn-group" role="group">
                     <button 
-                        @click="setFilter('all')" 
+                        @click="todoStore.setFilter('all')" 
                         class="btn"
-                        :class="activeFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                        :class="todoStore.activeFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
                     >
-                        All ({{ tasks.length }})
+                        All ({{ todoStore.tasksCount }})
                     </button>
                     <button 
-                        @click="setFilter('to-do')" 
+                        @click="todoStore.setFilter('to-do')" 
                         class="btn"
-                        :class="activeFilter === 'to-do' ? 'btn-danger' : 'btn-outline-danger'"
+                        :class="todoStore.activeFilter === 'to-do' ? 'btn-danger' : 'btn-outline-danger'"
                     >
-                        To Do ({{ getTasksByStatus('to-do').length }})
+                        To Do ({{ todoStore.getTasksByStatus('to-do').length }})
                     </button>
                     <button 
-                        @click="setFilter('in-progress')" 
+                        @click="todoStore.setFilter('in-progress')" 
                         class="btn"
-                        :class="activeFilter === 'in-progress' ? 'btn-warning' : 'btn-outline-warning'"
+                        :class="todoStore.activeFilter === 'in-progress' ? 'btn-warning' : 'btn-outline-warning'"
                     >
-                        In Progress ({{ getTasksByStatus('in-progress').length }})
+                        In Progress ({{ todoStore.getTasksByStatus('in-progress').length }})
                     </button>
                     <button 
-                        @click="setFilter('finished')" 
+                        @click="todoStore.setFilter('finished')" 
                         class="btn"
-                        :class="activeFilter === 'finished' ? 'btn-success' : 'btn-outline-success'"
+                        :class="todoStore.activeFilter === 'finished' ? 'btn-success' : 'btn-outline-success'"
                     >
-                        Finished ({{ getTasksByStatus('finished').length }})
+                        Finished ({{ todoStore.getTasksByStatus('finished').length }})
                     </button>
                 </div>
             </div>
@@ -80,12 +80,12 @@
             <div class="card-body">
                 <h5 class="card-title">
                     Tasks List 
-                    <span class="badge bg-secondary">{{ filteredTasks.length }}</span>
+                    <span class="badge bg-secondary">{{ todoStore.filteredTasks.length }}</span>
                 </h5>
                 
-                <div v-if="filteredTasks.length === 0" class="text-center text-muted py-4">
+                <div v-if="todoStore.filteredTasks.length === 0" class="text-center text-muted py-4">
                     <i class="fas fa-inbox fa-3x mb-3"></i>
-                    <p>{{ activeFilter === 'all' ? 'No tasks' : `No tasks with "${getFilterTitle()}" status` }}</p>
+                    <p>{{ todoStore.activeFilter === 'all' ? 'No tasks' : `No tasks with "${todoStore.filterTitle}" status` }}</p>
                 </div>
 
                 <div v-else class="table-responsive">
@@ -101,7 +101,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(task, index) in filteredTasks" :key="task.id">
+                            <tr v-for="(task, index) in todoStore.filteredTasks" :key="task.id">
                                 <td>
                                     <span :class="{'finished': task.status === 'finished'}">
                                         {{ task.name }}
@@ -114,7 +114,7 @@
                                 </td>
                                 <td style="width: 120px;">
                                     <span 
-                                        @click="changeStatus(task.id)" 
+                                        @click="todoStore.changeTaskStatus(task.id)" 
                                         class="badge pointer"
                                         :class="{
                                             'bg-danger': task.status === 'to-do',
@@ -165,10 +165,17 @@
 </template>
 
 <script>
+import { useTodoStore } from '@/stores/todoStore'
+
 export default {
     name: 'TodoList',
     props: {
         msg: String,
+    },
+    
+    setup() {
+        const todoStore = useTodoStore()
+        return { todoStore }
     },
     
     data() {
@@ -176,38 +183,7 @@ export default {
             task: '',
             description: '',
             editedTask: null,
-            activeFilter: 'all',
-            isTaskValid: true,
-            availableStatuses: ['to-do', 'in-progress', 'finished'],
-            tasks: [
-                {
-                    id: 1,
-                    name: 'Learn Vue.js',
-                    description: 'Study Vue.js framework basics and create first project',
-                    status: 'to-do'
-                },
-                {
-                    id: 2,
-                    name: 'Setup Project',
-                    description: 'Install necessary dependencies and configure development environment',
-                    status: 'in-progress'
-                },
-                {
-                    id: 3,
-                    name: 'Create Components',
-                    description: 'Develop main components for the application',
-                    status: 'finished'
-                }
-            ]
-        }
-    },
-
-    computed: {
-        filteredTasks() {
-            if (this.activeFilter === 'all') {
-                return this.tasks;
-            }
-            return this.tasks.filter(task => task.status === this.activeFilter);
+            isTaskValid: true
         }
     },
 
@@ -221,19 +197,15 @@ export default {
             this.isTaskValid = true;
 
             if (this.editedTask === null) {
-                const newId = Math.max(...this.tasks.map(t => t.id), 0) + 1;
-                this.tasks.push({
-                    id: newId,
+                this.todoStore.addTask({
                     name: this.task,
-                    description: this.description,
-                    status: 'to-do'
+                    description: this.description
                 });
             } else {
-                const taskIndex = this.tasks.findIndex(t => t.id === this.editedTask);
-                if (taskIndex !== -1) {
-                    this.tasks[taskIndex].name = this.task;
-                    this.tasks[taskIndex].description = this.description;
-                }
+                this.todoStore.updateTask(this.editedTask, {
+                    name: this.task,
+                    description: this.description
+                });
                 this.editedTask = null;
             }
 
@@ -243,15 +215,12 @@ export default {
 
         deleteTask(taskId) {
             if (confirm('Are you sure you want to delete this task?')) {
-                const taskIndex = this.tasks.findIndex(t => t.id === taskId);
-                if (taskIndex !== -1) {
-                    this.tasks.splice(taskIndex, 1);
-                }
+                this.todoStore.deleteTask(taskId);
             }
         },
 
         editTask(taskId) {
-            const task = this.tasks.find(t => t.id === taskId);
+            const task = this.todoStore.getTaskById(taskId);
             if (task) {
                 this.task = task.name;
                 this.description = task.description || '';
@@ -263,32 +232,6 @@ export default {
             this.task = '';
             this.description = '';
             this.editedTask = null;
-        },
-
-        changeStatus(taskId) {
-            const task = this.tasks.find(t => t.id === taskId);
-            if (task) {
-                let newIndex = this.availableStatuses.indexOf(task.status);
-                if (++newIndex > 2) newIndex = 0;
-                task.status = this.availableStatuses[newIndex];
-            }
-        },
-
-        setFilter(filter) {
-            this.activeFilter = filter;
-        },
-
-        getTasksByStatus(status) {
-            return this.tasks.filter(task => task.status === status);
-        },
-
-        getFilterTitle() {
-            const titles = {
-                'to-do': 'To Do',
-                'in-progress': 'In Progress',
-                'finished': 'Finished'
-            };
-            return titles[this.activeFilter] || this.activeFilter;
         },
 
         firstCharUpper(str) {
