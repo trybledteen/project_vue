@@ -2,30 +2,11 @@ import { defineStore } from 'pinia'
 
 export const useTodoStore = defineStore('todo', {
   state: () => ({
-    tasks: [
-      {
-        id: 1,
-        name: 'Learn Vue.js',
-        description: 'Study Vue.js framework basics and create first project',
-        status: 'to-do'
-      },
-      {
-        id: 2,
-        name: 'Setup Project',
-        description: 'Install necessary dependencies and configure development environment',
-        status: 'in-progress'
-      },
-      {
-        id: 3,
-        name: 'Create Components',
-        description: 'Develop main components for the application',
-        status: 'finished'
-      }
-    ],
+    tasks: JSON.parse(localStorage.getItem('todoTasks')) || [],
     activeFilter: 'all',
     availableStatuses: ['to-do', 'in-progress', 'finished']
   }),
-
+ 
   getters: {
     filteredTasks: (state) => {
       if (state.activeFilter === 'all') {
@@ -33,17 +14,17 @@ export const useTodoStore = defineStore('todo', {
       }
       return state.tasks.filter(task => task.status === state.activeFilter)
     },
-
+     
     getTasksByStatus: (state) => {
       return (status) => state.tasks.filter(task => task.status === status)
     },
-
+     
     getTaskById: (state) => {
       return (id) => state.tasks.find(task => task.id === parseInt(id))
     },
-
+     
     tasksCount: (state) => state.tasks.length,
-
+     
     filterTitle: (state) => {
       const titles = {
         'to-do': 'To Do',
@@ -53,8 +34,12 @@ export const useTodoStore = defineStore('todo', {
       return titles[state.activeFilter] || state.activeFilter
     }
   },
-
+ 
   actions: {
+    saveToLocalStorage() {
+      localStorage.setItem('todoTasks', JSON.stringify(this.tasks))
+    },
+
     addTask(taskData) {
       const newId = Math.max(...this.tasks.map(t => t.id), 0) + 1
       this.tasks.push({
@@ -63,8 +48,9 @@ export const useTodoStore = defineStore('todo', {
         description: taskData.description,
         status: 'to-do'
       })
+      this.saveToLocalStorage()
     },
-
+     
     updateTask(id, taskData) {
       const taskIndex = this.tasks.findIndex(t => t.id === id)
       if (taskIndex !== -1) {
@@ -74,15 +60,17 @@ export const useTodoStore = defineStore('todo', {
           description: taskData.description
         }
       }
+      this.saveToLocalStorage() 
     },
-
+     
     deleteTask(id) {
       const taskIndex = this.tasks.findIndex(t => t.id === id)
       if (taskIndex !== -1) {
         this.tasks.splice(taskIndex, 1)
       }
+      this.saveToLocalStorage()
     },
-
+     
     changeTaskStatus(id) {
       const task = this.tasks.find(t => t.id === id)
       if (task) {
@@ -90,8 +78,9 @@ export const useTodoStore = defineStore('todo', {
         if (++newIndex > 2) newIndex = 0
         task.status = this.availableStatuses[newIndex]
       }
+      this.saveToLocalStorage()
     },
-
+     
     setNextStatus(id) {
       const task = this.tasks.find(t => t.id === id)
       if (task && task.status !== 'finished') {
@@ -101,8 +90,9 @@ export const useTodoStore = defineStore('todo', {
         }
         task.status = statusFlow[task.status]
       }
+      this.saveToLocalStorage()
     },
-
+     
     setFilter(filter) {
       this.activeFilter = filter
     }
