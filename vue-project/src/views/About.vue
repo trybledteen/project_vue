@@ -3,7 +3,7 @@
     <div class="row justify-content-center">
       <div class="col-md-8">
         <h1 class="text-center mb-4">About the To-do List project</h1>
-        
+                
         <div class="card shadow">
           <div class="card-body">
             <h5 class="card-title">
@@ -26,8 +26,11 @@
             <ul class="list-unstyled">
               <li><i class="fab fa-vuejs text-success me-2"></i> Vue.js 3</li>
               <li><i class="fas fa-route text-primary me-2"></i> Vue Router</li>
+              <li><i class="fas fa-store text-orange me-2"></i> Pinia (State Management)</li>
               <li><i class="fab fa-bootstrap text-purple me-2"></i> Bootstrap 5</li>
+              <li><i class="fab fa-font-awesome text-blue me-2"></i> Font Awesome Icons</li>
               <li><i class="fab fa-js-square text-warning me-2"></i> JavaScript ES6+</li>
+              <li><i class="fas fa-database text-secondary me-2"></i> Local Storage</li>
             </ul>
           </div>
         </div>
@@ -44,13 +47,15 @@
                   <li>Adding new tasks</li>
                   <li>Editing existing tasks</li>
                   <li>Deleting tasks</li>
+                  <li>Form validation</li>
                 </ul>
               </div>
               <div class="col-md-6">
                 <ul>
                   <li>Changing task status</li>
-                  <li>Visual status indicators</li>
-                  <li>Adaptive design</li>
+                  <li>Task filtering</li>
+                  <li>Task details view</li>
+                  <li>Data persistence</li>
                 </ul>
               </div>
             </div>
@@ -77,6 +82,14 @@ export default {
 <style scoped>
 .text-purple {
   color: #6f42c1;
+}
+
+.text-orange {
+  color: #ff6b35;
+}
+
+.text-blue {
+  color: #228be6;
 }
 
 .card {
